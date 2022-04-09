@@ -16,7 +16,24 @@ inventarioExcel= ''
 hojaInventarioExcel=''
 llavesExcel=''
 hojaLlavesExcel=''
+ingresoManual= ''
 
+def cerrarVentanaParaIngresarValor(valorIngresado):
+    global ingresoManual
+    ingresoManual = valorIngresado
+    ventanaSecundaria.destroy()
+
+def ventanaParaIngresarValor(mensaje):
+    global ventanaSecundaria
+    ventanaSecundaria = Toplevel()
+    ventanaSecundaria.resizable(0,0)
+    ventanaSecundaria.transient(ventana)
+
+    Label(ventanaSecundaria,text=mensaje).pack(pady=10,padx=30)
+    entryDeAlerta = Entry(ventanaSecundaria)
+    entryDeAlerta.pack()
+    Button(ventanaSecundaria,text='Aceptar',command=lambda: cerrarVentanaParaIngresarValor(entryDeAlerta.get())).pack(pady=10,padx=10)
+    ventanaSecundaria.wait_window()
 
 def copirait():
     messagebox.showinfo("About","Copyright © todos los derechos reservados a Julián Ferrari")
@@ -132,34 +149,34 @@ def cargarReemplazo():#Cargar reemplazo de pinpad
         messagebox.showerror("¡Error!","Seleccione tipo de solicitud")
         return
 
-    global openFile,sheet, excel_mod
+    global openFile,sheet, excel_mod, ingresoManual
+    ingresoManual=''
     nombre_rest=''
     direccion = ''
     telefono = ''
     afiliado = ''
     verificarRutaXML(1)
 
-    try:#Se valida que el cajaRestaurante no se encuentre vacio
-        for i in range(sheet.nrows):
-            excelAux = separaCadenaPorCaracter(sheet.cell_value(i,0),'.',0)
-            if excelAux == cajaRestaurante.get().upper():
-                nombre_rest = str(sheet.cell_value(i,1))
-                try:
-                    afiliado=int(sheet.cell_value(i,8))
-                except:
-                    messagebox.showinfo("¡Atención!","No posee número de afiliacón")
-                try:
-                    telefono=int(sheet.cell_value(i,10))
-                except:
-                    messagebox.showinfo("¡Atención!","No posee número de telefono")
-                try:
-                    direccion = str(sheet.cell_value(i,15))
-                except:
-                    messagebox.showinfo("¡Atención!","No posee dirección")
-                break
-    except:
-        messagebox.showwarning("¡Atención!","Ingresar restaurante")
-        return
+    for i in range(sheet.nrows):
+        excelAux = separaCadenaPorCaracter(sheet.cell_value(i,0),'.',0)
+        if excelAux == cajaRestaurante.get().upper():
+            nombre_rest = str(sheet.cell_value(i,1))
+            try:
+                afiliado=int(sheet.cell_value(i,8))
+            except:
+                ventanaParaIngresarValor("Favor de ingresar afiliación manualmente: ")
+                afiliado = ingresoManual
+            try:
+                telefono=int(sheet.cell_value(i,10))
+            except:
+                ventanaParaIngresarValor("Favor de ingresar teléfono de contacto manualmente: ")
+                telefono = ingresoManual
+            if(str(sheet.cell_value(i,15))!=''):
+                direccion = str(sheet.cell_value(i,15))
+            else:
+                ventanaParaIngresarValor("Favor de ingresar la dirección manualmente: ")
+                direccion = ingresoManual
+            break
 
     if nombre_rest == '' :#Valida que haya ingresado un restaurante correcto
         messagebox.showerror("¡Atención!","Revisar que el restaurante ingresado sea correcto")
@@ -172,14 +189,8 @@ def cargarReemplazo():#Cargar reemplazo de pinpad
     verificarRutaXML(2)
     
     sheet['C5'] = nombre_rest
-    try:
-        sheet['C6'] = afiliado
-    except:
-        pass
-    try:
-        sheet['C11'] = telefono
-    except:
-        pass
+    sheet['C6'] = afiliado
+    sheet['C11'] = telefono
     sheet['C8'] = direccion
     sheet['C17'] = cajaTicket.get()
     sheet['C16'] = cajaMotivo.get()
@@ -353,6 +364,7 @@ def buscarLlaves():
         textIP.insert(END, "\n")
         textIP.insert(END, "\n==================================================")
         textIP.configure(state=DISABLED)
+
 
 #Ventana princiapl
 ventana = Tk()
