@@ -8,7 +8,6 @@ import pyperclip
 from io import open
 import os
 import pickle
-#from pygame import mixer
 
 openFile=''
 sheet=''
@@ -17,16 +16,9 @@ inventarioExcel= ''
 hojaInventarioExcel=''
 llavesExcel=''
 hojaLlavesExcel=''
-#1 Informacion de restaurantes
-#2 Plantilla Evopayments
-#3 Donde guarda el Excel modificado
-#4 Verifica el inventario de evo
-#5 Verifica las llaves
+
 
 def copirait():
-    #mixer.init()
-    #mixer.music.load('about.mp3')
-    #mixer.music.play()
     messagebox.showinfo("About","Copyright © todos los derechos reservados a Julián Ferrari")
 
 def verificarRutaXML(opcion,validacionConfig=False):
