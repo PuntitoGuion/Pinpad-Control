@@ -2,6 +2,7 @@ from tkinter import *
 from tkinter import messagebox
 from tkinter import filedialog
 from tkinter.ttk import Notebook
+from turtle import title
 import xlrd
 from openpyxl import load_workbook
 import pyperclip
@@ -18,21 +19,23 @@ llavesExcel=''
 hojaLlavesExcel=''
 ingresoManual= ''
 
-def cerrarVentanaParaIngresarValor(valorIngresado):
+def cerrarVentanaParaIngresarValor(valorIngresado,ventanaSecundaria):
     global ingresoManual
     ingresoManual = valorIngresado
     ventanaSecundaria.destroy()
 
-def ventanaParaIngresarValor(mensaje):
-    global ventanaSecundaria
+def ventanaParaIngresarValor(mensaje,anchoDeEntry=None):
     ventanaSecundaria = Toplevel()
+    ventanaSecundaria.title('¡Información incompleta!')
     ventanaSecundaria.resizable(0,0)
+    ventanaSecundaria.geometry('+813+457')
     ventanaSecundaria.transient(ventana)
 
     Label(ventanaSecundaria,text=mensaje).pack(pady=10,padx=30)
-    entryDeAlerta = Entry(ventanaSecundaria)
+    entryDeAlerta = Entry(ventanaSecundaria,width=anchoDeEntry)
     entryDeAlerta.pack()
-    Button(ventanaSecundaria,text='Aceptar',command=lambda: cerrarVentanaParaIngresarValor(entryDeAlerta.get())).pack(pady=10,padx=10)
+    Button(ventanaSecundaria,text='Aceptar',command=lambda: cerrarVentanaParaIngresarValor(entryDeAlerta.get(),ventanaSecundaria)).pack(pady=10,padx=10)
+    ventanaSecundaria.grab_set()
     ventanaSecundaria.wait_window()
 
 def copirait():
@@ -174,7 +177,7 @@ def cargarReemplazo():#Cargar reemplazo de pinpad
             if(str(sheet.cell_value(i,15))!=''):
                 direccion = str(sheet.cell_value(i,15))
             else:
-                ventanaParaIngresarValor("Favor de ingresar la dirección manualmente: ")
+                ventanaParaIngresarValor("Favor de ingresar la dirección manualmente: ",'50')
                 direccion = ingresoManual
             break
 
@@ -370,6 +373,7 @@ def buscarLlaves():
 ventana = Tk()
 ventana.title("Pinpad Control")
 ventana.resizable(0,0)
+ventana.geometry('+643+333')
 pestanias = Notebook(ventana)
 pestanias.pack(fill="both",expand="yes")
 
