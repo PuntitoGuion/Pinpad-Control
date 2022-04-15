@@ -2,7 +2,6 @@ from tkinter import *
 from tkinter import messagebox
 from tkinter import filedialog
 from tkinter.ttk import Notebook
-from turtle import title
 import xlrd
 from openpyxl import load_workbook
 import pyperclip
