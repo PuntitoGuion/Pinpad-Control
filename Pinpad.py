@@ -8,7 +8,7 @@ import pyperclip
 from io import open
 import os
 import pickle
-
+#Prueba
 openFile=''
 sheet=''
 guardado=''
