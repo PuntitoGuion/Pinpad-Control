@@ -4,10 +4,12 @@ from tkinter import filedialog
 from tkinter.ttk import Notebook
 import xlrd
 from openpyxl import load_workbook
-import pyperclip
 from io import open
 import os
 import pickle
+import win32com.client as win32
+import time
+
 
 openFile=''
 sheet=''
@@ -145,8 +147,18 @@ def separaCadenaPorCaracter(cadena,separaValores,posicion):
     cadena = cadena.split(separaValores)
     return cadena[posicion]
 
+def openOutlook(fileName,to,cc,body,asunto):
+    outlook = win32.Dispatch("Outlook.Application")
+    mail = outlook.CreateItem(0)
+    mail.To = to
+    mail.Cc = cc
+    mail.Subject = asunto #str(cajaTicket.get()) + """ - """ + restName + """ - Pinpad dañado - Pos """ + str(cajaPos.get())
+    mail.Body = body
+    mail.Attachments.Add(fileName)   
+    mail.Display()
+
 def cargarReemplazo():#Cargar reemplazo de pinpad
-    
+
     if altaReemplazo.get()!=1 and altaReemplazo.get()!= 2:
         messagebox.showerror("¡Error!","Seleccione tipo de solicitud")
         return
@@ -197,7 +209,7 @@ def cargarReemplazo():#Cargar reemplazo de pinpad
     sheet['C17'] = cajaTicket.get()
     sheet['C16'] = cajaMotivo.get()
 
-    if altaReemplazo.get() == 2:
+    if altaReemplazo.get() == 2 or (altaReemplazo.get() == 1 and inventario.get() != 4):
         sheet['C15'] =  ("Marca: " + modelo.get() + " Numero de serie: " + cajaSerie.get())
 
     if altaReemplazo.get() == 2:
@@ -206,45 +218,71 @@ def cargarReemplazo():#Cargar reemplazo de pinpad
             return
 
     info = verificarRutaXML(3)
-    
-    excel_mod.save(str(info) + '/' + nombre_rest + " - " + cajaTicket.get() + " - Pos " + cajaPos.get() + " .xlsx")#Guardado de excel con nombre
-
+    fileLayout = str(info) + '/' + nombre_rest + " - " + cajaTicket.get() + " - Pos " + cajaPos.get() + " .xlsx"
+    excel_mod.save(fileLayout)#Guardado de excel con nombre
 
     if altaReemplazo.get() == 2:
         if(int(inventario.get()))==2:
-            pyperclip.copy(str(cajaTicket.get()) + """ - """ + nombre_rest + """ - Pinpad dañado - Pos """ + str(cajaPos.get()) + """
-Adriana,
+            asunto = str(cajaTicket.get()) + """ - """ + nombre_rest + """ - Pinpad dañado - Pos """ + str(cajaPos.get())
+            para = "adriana.montufar@evopayments.mx"
+            copia = "miguel.cruz@mx.mc.com; emmanuel.sanchez@mx.mcd.com; Jesus.River@mx.mcd.com; bpscxmdasupportad@dxc.com; Rodrigo.Gutierrez@mx.mcd.com"
+            cuerpoMail = f"""Buenos días/tardes/noches,
 
-Nos contactamos desde la Mesa de Ayuda de Arcos Dorados para solicitar el reemplazo de un pinpad que se encuentra en inventario de EvoPayments
-Falla: """ + str(cajaMotivo.get()) + """
+Nos contactamos desde la Mesa de Ayuda de Arcos Dorados para solicitar el reemplazo de un pinpad dañado.
 
-Marca: """ + str(modelo.get()) + """
-N/S: """ + str(cajaSerie.get()) + """
+Falla: {cajaMotivo.get()}
+
+Marca y modelo: {modelo.get()}
+N/S: {cajaSerie.get()}
 
 Adjunto el archivo LayOut con los detalles del restaurante y contacto para efectuar el reemplazo. 
 
 Cualquier información adicional que necesiten no dude en contactarnos.
 
-Saludos,""")
+Saludos,
+"""
+            openOutlook(fileLayout,para,copia,cuerpoMail,asunto)
         
-        if(int(inventario.get()))==1:
-            pyperclip.copy(str(cajaTicket.get()) + """ - """ + nombre_rest + """ - Pinpad dañado - Pos """ + str(cajaPos.get()) + """
-Adriana,
+        elif(int(inventario.get()))==1:
+            asunto = str(cajaTicket.get()) + """ - """ + nombre_rest + """ - Pinpad dañado - Pos """ + str(cajaPos.get())
+            para = "miguel.cruz@mx.mc.com"
+            copia = "emmanuel.sanchez@mx.mcd.com; adriana.montufar@evopayments.mx; Jesus.River@mx.mcd.com; bpscxmdasupportad@dxc.com;Rodrigo.Gutierrez@mx.mcd.com"
+            cuerpoMail = f"""Buenos días/tardes/noches,
 
-Nos contactamos desde la Mesa de Ayuda de Arcos Dorados para solicitar el alta de un pinpad. El restaurante posee uno que pertenece a Grupo Asesores ya que no se encuentra en el inventario de EvoPayments.
-Falla: """ + str(cajaMotivo.get()) + """
+Nos contactamos desde la Mesa de Ayuda de Arcos Dorados para solicitar el alta de un nuevo pinpad, para el restaurante {nombre_rest}, ya que el equipo que tienen actualmente pertenece a Grupo Asesores.
 
-Marca: """ + str(modelo.get()) + """
-N/S: """ + str(cajaSerie.get()) + """
+Adjunto el archivo LayOut con los detalles del restaurante y contacto para efectuar el Alta. 
 
-Adjunto el archivo LayOut con los detalles del restaurante y contacto para efectuar el reemplazo. 
+Cualquier información adicional que necesiten no dude en contactarnos."""
+            openOutlook(fileLayout,para,copia,cuerpoMail,asunto)
+
+    if altaReemplazo.get() == 1:
+        if inventario.get() == 3: 
+            asunto = str(cajaTicket.get()) + """ - """ + nombre_rest + """ - Pinpad dañado - Pos """ + str(cajaPos.get())
+            para = "adriana.montufar@evopayments.mx"
+            copia = "emmanuel.sanchez@mx.mcd.com; Jesus.River@mx.mcd.com; bpscxmdasupportad@dxc.com; Rodrigo.Gutierrez@mx.mcd.com; karina.rangel@mx.mcd.com"
+            cuerpoMail = f"""Buenos días/tardes/noches,
+
+Nos contactamos desde la Mesa de Ayuda de Arcos Dorados para solicitar el alta de un pinpad que se encuentra dañado, informamos que el pinpad es {modelo.get()} y no se encuentra la serie en el inventario.
+
+Falla: {cajaMotivo.get()}
+
+Marca y modelo: {modelo.get()}
+Serie: {cajaSerie.get()}
+
+Adjunto el archivo LayOut con los detalles del restaurante y contacto para efectuar el reemplazo.
 
 Cualquier información adicional que necesiten no dude en contactarnos.
 
-Saludos,""")
-    elif altaReemplazo.get() == 1:
-        pyperclip.copy(str(cajaTicket.get()) + """ - """ + ' ' + nombre_rest + """ - Alta de pinpad - Pos """ + str(cajaPos.get()) + """
- estimado,
+Saludos,
+"""
+            openOutlook(fileLayout,para,copia,cuerpoMail,asunto)
+
+        elif inventario.get() == 4:
+            asunto = str(cajaTicket.get()) + """ - """ + ' ' + nombre_rest + """ - Alta de pinpad - Pos """ + str(cajaPos.get())
+            para = "adriana.montufar@evopayments.mx"
+            copia = "emmanuel.sanchez@mx.mcd.com; Jesus.River@mx.mcd.com; bpscxmdasupportad@dxc.com; Rodrigo.Gutierrez@mx.mcd.com; karina.rangel@mx.mcd.com"
+            cuerpoMail = """Buenos días/tardes/noches estimado,
 
 Nos contactamos desde la Mesa de Ayuda de Arcos Dorados para solicitar el alta de un nuevo pinpad para el restaurante """ + nombre_rest + """, ya que la pos no cuenta con uno.
 
@@ -253,8 +291,8 @@ Adjunto el archivo LayOut con los detalles del restaurante y contacto para efect
 Cualquier información adicional que necesiten no dude en contactarnos.
 
 Saludos,
-"""     )
-
+"""
+            openOutlook(fileLayout,para,copia,cuerpoMail,asunto)
 def buscarPinpadInventario():
     numberSerial = str(cajaInventario.get())
     verificarRutaXML(1)
@@ -436,12 +474,14 @@ etiquetainv = Label(usoNormal,text="Inventario: ")
 etiquetainv.grid(row=2,column=3,padx=10,pady=10,sticky="w")
 Radiobutton(usoNormal,text="Pertenece a EvoPayments",variable=inventario,value=2).grid(row=2,column=4,sticky="w",padx=10)
 Radiobutton(usoNormal,text="Pertenece a GA",variable=inventario,value=1).grid(row=3,column=4,sticky="w",padx=10)
+Radiobutton(usoNormal,text="Fuera de inventario",variable=inventario,value=3).grid(row=4,column=4,sticky="w",padx=10)
+Radiobutton(usoNormal,text="No existe",variable=inventario,value=4).grid(row=3,column=3,sticky="w",padx=10)
 
 altaReemplazo=IntVar()
 etiquetainv = Label(usoNormal,text="Tipo de solicitud: ")
-etiquetainv.grid(row=4,column=3,padx=10,pady=10,sticky="w")
-Radiobutton(usoNormal,text="Alta de pinpad",variable=altaReemplazo,value=1).grid(row=4,column=4,sticky="w",padx=10)
-Radiobutton(usoNormal,text="Reemplazo de pinpad",variable=altaReemplazo,value=2).grid(row=5,column=4,sticky="w",padx=10)
+etiquetainv.grid(row=5,column=3,padx=10,pady=10,sticky="w")
+Radiobutton(usoNormal,text="Alta de pinpad",variable=altaReemplazo,value=1).grid(row=5,column=4,sticky="w",padx=10)
+Radiobutton(usoNormal,text="Reemplazo de pinpad",variable=altaReemplazo,value=2).grid(row=6,column=4,sticky="w",padx=10)
 
 Button(usoNormal,text="       ✅       ",foreground='green',command=cargarReemplazo).grid(row=7,column=2,padx=10,pady=10,sticky="s")
 
